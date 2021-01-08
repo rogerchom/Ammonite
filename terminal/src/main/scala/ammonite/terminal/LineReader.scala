@@ -44,6 +44,10 @@ class LineReader(width: Int,
     val actualWidth = width - promptWidth
 
     ansi.up(ups)
+//    ansi.right(2)
+//    writer.write("X")
+//    ansi.down(1)
+//    ansi.left(2)
     ansi.left(9999)
     ansi.clearScreen(0)
     writer.write(promptLine.toString)

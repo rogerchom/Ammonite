@@ -53,6 +53,7 @@ case class AmmoniteFrontEnd(extraFilters: Filter = Filter.empty) extends FrontEn
         val (newCursor, completions, details) = TTY.withSttyOverride(TTY.restoreSigInt()) {
           compilerComplete(c, b.mkString)
         }
+
         val details2 = for (d <- details) yield {
 
           Highlighter.defaultHighlight(
@@ -84,9 +85,14 @@ case class AmmoniteFrontEnd(extraFilters: Filter = Filter.empty) extends FrontEn
           val (left, right) = comp.splitAt(common.length)
           (colors.comment()(left) ++ right).render
         }
-        val stdout =
-          FrontEndUtils.printCompletions(completions2, details2)
-                       .mkString
+
+//        val foo = FrontEndUtils.printCompletions(completions2, details2)
+//        println(s"length: ${foo.length}")
+//        val foo2 = foo.map { s => s"""("$s", ${s.length})"""}
+//        val stdout = foo2.mkString("[",", ","]") //FrontEndUtils.printCompletions(completions2, details2).mkstring
+
+        val stdout = FrontEndUtils.printCompletions(completions2, details2)
+          .mkString
 
         if (details.nonEmpty || completions.isEmpty)
           Printing(TermState(rest, b, c), stdout)
@@ -111,6 +117,11 @@ case class AmmoniteFrontEnd(extraFilters: Filter = Filter.empty) extends FrontEn
     val selectionFilter = GUILikeFilters.SelectionFilter(indent = 2)
 
     val allFilters = Filter.merge(
+      Filter.action(Strings(Seq("?"))){
+        case TermState(rest, b, c, _) =>
+          println("am I alive?")
+          Printing(TermState(rest, b, c), "I LIVE!!!!")
+      },
       UndoFilter(),
       historyFilter,
       extraFilters,
