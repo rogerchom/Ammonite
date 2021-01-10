@@ -10,7 +10,7 @@ import scala.collection.mutable
   * line of input
   */
 class LineReader(width: Int,
-                 prompt: Prompt,
+                 var prompt: Prompt, // todo - remove var
                  reader: java.io.Reader,
                  writer: java.io.Writer,
                  filters: Filter,
@@ -122,6 +122,8 @@ class LineReader(width: Int,
     // being pasted
     lazy val (renderedCursor, rendered) = computeRendered(lastState)
 
+    prompt = s"readChar -- lastState: $lastState, ups: $ups@ " // todo - delete this
+
     val rowLengths = LineReader.splitBuffer(lastState.buffer ++ lastState.msg.plainText).toVector
 
     val narrowWidth = width - prompt.lastLine.length
@@ -138,6 +140,8 @@ class LineReader(width: Int,
       if (moreInputComing) (ups, ups)
       else {
 
+//        println("!moreInputComing") // This case runs usually
+//        println(s"rendered: $rendered") // redrawLine(...) draws all lines in multi-line buffer. HOW DOES ARROW KEYING MANIPULATE CURSOR STATE?
         redrawLine(rendered, renderedCursor, ups, rowLengths, fullPrompt, newlinePrompt)
 
         val oldCursorY = LineReader.positionCursor(
@@ -150,6 +154,8 @@ class LineReader(width: Int,
         (oldCursorY + newlineUp, oldCursorY)
       }
 
+//    println(s"readChar -- nextUps: $nextUps, oldCursorY: $oldCursorY") // nextUps seems to == oldCursorY most of the time
+
     // Centralize the "keep cursor in bounds" logic in one place, so the rest
     // of the code in filters can YOLO it and not worry about this book-keeping
     def boundCursor(ts: TermState) = {
@@ -159,13 +165,18 @@ class LineReader(width: Int,
     // character, even if only to dump the character to the screen. If nobody
     // matches the character then we can feel free to blow up
     filters.op(TermInfo(lastState, actualWidth)).get match {
-      case ts: TermState => readChar(boundCursor(ts), nextUps, false)
+      case ts: TermState =>
+//        println(s" case ts -- ts: $ts") // Most often comes to this case
+        readChar(boundCursor(ts), nextUps, false)
 
       case Printing(ts, stdout) =>
+        println(s" case Printing -- ts: $ts")
         writer.write(stdout)
         readChar(boundCursor(ts), nextUps)
 
+      // Base-case. Statement has ended. Evaluate, print result, exit recursion
       case Result(s) =>
+        println(s" case Result -- s: $s")
         redrawLine(
           rendered, lastState.buffer.length,
           oldCursorY + newlineUp, rowLengths, false, newlinePrompt
@@ -178,6 +189,7 @@ class LineReader(width: Int,
         ansi.clearScreen(2)
         ansi.up(9999)
         ansi.left(9999)
+        println(s" case ClearScreen -- ts: $ts")
         readChar(ts, ups)
 
       case Exit => None

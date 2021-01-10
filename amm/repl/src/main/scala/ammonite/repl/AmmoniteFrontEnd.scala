@@ -98,6 +98,7 @@ case class AmmoniteFrontEnd(extraFilters: Filter = Filter.empty) extends FrontEn
           Printing(TermState(rest, b, c), stdout)
         else{
           val newBuffer = b.take(newCursor) ++ common ++ b.drop(c)
+//          println(s"autocompleteFilter -- b: $b, c: $c, common: $common, newBuffer: $newBuffer") // $newBuffer is usually the same as $b, $common is usually empty
           Printing(TermState(rest, newBuffer, newCursor + common.length), stdout)
         }
 
@@ -117,11 +118,11 @@ case class AmmoniteFrontEnd(extraFilters: Filter = Filter.empty) extends FrontEn
     val selectionFilter = GUILikeFilters.SelectionFilter(indent = 2)
 
     val allFilters = Filter.merge(
-      Filter.action(Strings(Seq("?"))){
-        case TermState(rest, b, c, _) =>
-          println("am I alive?")
-          Printing(TermState(rest, b, c), "I LIVE!!!!")
-      },
+//      Filter.action(Strings(Seq("?"))){
+//        case TermState(rest, b, c, _) =>
+//          println("am I alive?")
+//          Printing(TermState(rest, b, c), "I LIVE!!!!")
+//      },
       UndoFilter(),
       historyFilter,
       extraFilters,
