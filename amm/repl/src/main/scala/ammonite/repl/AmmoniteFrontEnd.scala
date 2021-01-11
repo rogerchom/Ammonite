@@ -100,6 +100,10 @@ case class AmmoniteFrontEnd(extraFilters: Filter = Filter.empty) extends FrontEn
           val newBuffer = b.take(newCursor) ++ common ++ b.drop(c)
 //          println(s"autocompleteFilter -- b: $b, c: $c, common: $common, newBuffer: $newBuffer") // $newBuffer is usually the same as $b, $common is usually empty
           Printing(TermState(rest, newBuffer, newCursor + common.length), stdout)
+          val newBuffer = b.take(newCursor) ++ common ++ b.drop(c) ++ stdout.toVector
+          //          println(s"autocompleteFilter -- b: $b, c: $c, common: $common, newBuffer: $newBuffer") // $newBuffer is usually the same as $b, $common is usually empty
+          //          Printing(TermState(rest, newBuffer, newCursor + common.length), stdout)
+          TermState(rest, newBuffer, newCursor + common.length)
         }
 
     }
