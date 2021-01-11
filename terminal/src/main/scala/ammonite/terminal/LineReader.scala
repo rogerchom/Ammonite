@@ -141,7 +141,8 @@ class LineReader(width: Int,
       else {
 
 //        println("!moreInputComing") // This case runs usually
-//        println(s"rendered: $rendered") // redrawLine(...) draws all lines in multi-line buffer. HOW DOES ARROW KEYING MANIPULATE CURSOR STATE?
+        // newlinePrompt is usually false. ups is equal to the y-coordinate of the previous iteration. Padded with \n\n to make sure rendered still appears after two lines
+        println(s"\n\nrendered: $rendered, renderedCursor: $renderedCursor, ups: $ups, rowLengths: $rowLengths, newlinePrompt: $newlinePrompt \n\n") // redrawLine(...) draws all lines in multi-line buffer. HOW DOES ARROW KEYING MANIPULATE CURSOR STATE?
         redrawLine(rendered, renderedCursor, ups, rowLengths, fullPrompt, newlinePrompt)
 
         val oldCursorY = LineReader.positionCursor(
