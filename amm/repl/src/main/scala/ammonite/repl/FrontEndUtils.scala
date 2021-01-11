@@ -12,7 +12,7 @@ object FrontEndUtils {
   def height =
     if (scala.util.Properties.isWin) ammonite.repl.FrontEnds.JLineWindows.width
     else ammonite.terminal.ConsoleDim.height()
-  def tabulate(snippetsRaw: Seq[fansi.Str], width: Int): Iterator[String] = {
+  def tabulate(snippetsRaw: Seq[fansi.Str], width: Int): (Iterator[String], Int) = {
     val gap = 2
     val snippets = if (snippetsRaw.isEmpty) Seq(fansi.Str("")) else snippetsRaw
     val maxLength = snippets.maxBy(_.length).length + gap
@@ -23,11 +23,13 @@ object FrontEndUtils {
               .grouped(math.ceil(snippets.length * 1.0 / columns).toInt)
               .toList
 
-    ammonite.util.Util.transpose(grouped).iterator.flatMap{
+    val tabulatedStrings = ammonite.util.Util.transpose(grouped).iterator.flatMap{
       case first :+ last => first.map(
         x => x ++ " " * (width / columns - x.length)
       ) :+ last :+ fansi.Str(newLine)
     }.map(_.render)
+
+    (tabulatedStrings, maxLength)
   }
 
   @tailrec def findPrefix(strings: Seq[String], i: Int = 0): String = {
@@ -37,23 +39,28 @@ object FrontEndUtils {
     else findPrefix(strings, i + 1)
   }
 
+  case class PrintCompletionsResult(completions: List[String], colWidth: Int)
   def printCompletions(completions: Seq[String],
-                       details: Seq[String]): List[String] = {
+                       details: Seq[String]): PrintCompletionsResult = {
 
     val prelude =
       if (details.length != 0 || completions.length != 0) List(newLine)
       else Nil
 
-    val detailsText =
-      if (details.length == 0) Nil
+    val detailsTextAndWidth =
+      if (details.length == 0) (Nil, 0)
       else FrontEndUtils.tabulate(details.map(fansi.Str(_)), FrontEndUtils.width)
+    val detailsText = detailsTextAndWidth._1
 
 
-    val completionText =
-      if (completions.length == 0) Nil
+    val completionTextAndWidth =
+      if (completions.length == 0) (Nil, 0)
       else FrontEndUtils.tabulate(completions.map(fansi.Str(_)), FrontEndUtils.width)
+    val completionText = completionTextAndWidth._1
+    val colWidth = completionTextAndWidth._2
 
-    prelude ++ detailsText ++ completionText
+    val printableCompletions = prelude ++ detailsText ++ completionText
+    PrintCompletionsResult(printableCompletions, colWidth)
   }
 
 }

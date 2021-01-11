@@ -49,7 +49,7 @@ case class AmmoniteFrontEnd(extraFilters: Filter = Filter.empty) extends FrontEn
     val writer = new OutputStreamWriter(output)
 
     val autocompleteFilter: Filter = Filter.action(SpecialKeys.Tab){
-      case TermState(rest, b, c, _) =>
+      case TermState(rest, b, c, _, _) =>
         val (newCursor, completions, details) = TTY.withSttyOverride(TTY.restoreSigInt()) {
           compilerComplete(c, b.mkString)
         }
@@ -91,15 +91,17 @@ case class AmmoniteFrontEnd(extraFilters: Filter = Filter.empty) extends FrontEn
 //        val foo2 = foo.map { s => s"""("$s", ${s.length})"""}
 //        val stdout = foo2.mkString("[",", ","]") //FrontEndUtils.printCompletions(completions2, details2).mkstring
 
-        val stdout = FrontEndUtils.printCompletions(completions2, details2)
-          .mkString
+        val result = FrontEndUtils.printCompletions(completions2, details2)
+        val stdout = result.completions.mkString
+        val colWidth = result.colWidth
 
         if (details.nonEmpty || completions.isEmpty)
           Printing(TermState(rest, b, c), stdout)
         else{
-          val newBuffer = b.take(newCursor) ++ common ++ b.drop(c)
+          val newBuffer = b.take(newCursor) ++ common ++ b.drop(c) ++ stdout.toVector
 //          println(s"autocompleteFilter -- b: $b, c: $c, common: $common, newBuffer: $newBuffer") // $newBuffer is usually the same as $b, $common is usually empty
-          Printing(TermState(rest, newBuffer, newCursor + common.length), stdout)
+//          Printing(TermState(rest, newBuffer, newCursor + common.length), stdout)
+          TermState(rest, newBuffer, newCursor + common.length, popupState=Some(PopupState(newCursor, colWidth)))
         }
 
     }
@@ -109,7 +111,7 @@ case class AmmoniteFrontEnd(extraFilters: Filter = Filter.empty) extends FrontEn
       SpecialKeys.NewLine,
       ti => Parsers.split(ti.ts.buffer.mkString).isEmpty
     ){
-      case TermState(rest, b, c, _) => BasicFilters.injectNewLine(b, c, rest)
+      case TermState(rest, b, c, _, _) => BasicFilters.injectNewLine(b, c, rest)
     }
 
     val historyFilter = new HistoryFilter(

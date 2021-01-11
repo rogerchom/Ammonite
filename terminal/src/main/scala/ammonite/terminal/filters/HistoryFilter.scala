@@ -155,7 +155,7 @@ class HistoryFilter(history: () => IndexedSeq[String],
   }
 
   def prelude: Filter = partial{
-    case TS(inputs, b, c, _) if activeHistory && prevBuffer.exists(_ != b) =>
+    case TS(inputs, b, c, _, _) if activeHistory && prevBuffer.exists(_ != b) =>
       endHistory()
       prevBuffer = None
       TS(inputs, b, c)
@@ -220,7 +220,7 @@ class HistoryFilter(history: () => IndexedSeq[String],
     partial{
       // Any other control characters drop you out of search mode, but only the
       // set of `dropHistoryChars` drops you out of history mode
-      case TS(char ~: inputs, buffer, cursor, _)
+      case TS(char ~: inputs, buffer, cursor, _, _)
         if char.toChar.isControl && searchOrHistoryAnd(dropHistoryChars(char)) =>
         val newBuffer =
         // If we're back to -1, it means we've wrapped around and are
@@ -239,13 +239,13 @@ class HistoryFilter(history: () => IndexedSeq[String],
 
       // Intercept every other printable character when search is on and
       // enter it into the current search
-      case TS(char ~: rest, buffer, cursor, _) if activeSearch =>
+      case TS(char ~: rest, buffer, cursor, _, _) if activeSearch =>
         wrap(rest, printableChar(char.toChar)(buffer, cursor))
 
       // If you're not in search but are in history, entering any printable
       // characters kicks you out of it and preserves the current buffer. This
       // makes it harder for you to accidentally lose work due to history-moves
-      case TS(char ~: rest, buffer, cursor, _) if activeHistory && !char.toChar.isControl =>
+      case TS(char ~: rest, buffer, cursor, _, _) if activeHistory && !char.toChar.isControl =>
         historyIndex = -1
         TS(char ~: rest, buffer, cursor)
     }

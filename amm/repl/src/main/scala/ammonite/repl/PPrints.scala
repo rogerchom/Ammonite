@@ -29,7 +29,7 @@ object PPrints{
                 .toStream:_*
       )
     }
-    Iterator(Util.newLine) ++ FrontEndUtils.tabulate(snippets, FrontEndUtils.width)
+    Iterator(Util.newLine) ++ FrontEndUtils.tabulate(snippets, FrontEndUtils.width)._1
   }
 
 

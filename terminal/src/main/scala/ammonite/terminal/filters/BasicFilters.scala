@@ -42,11 +42,11 @@ object BasicFilters {
   }
 
   def tabFilter(indent: Int): Filter = partial{
-    case TS(9 ~: rest, b, c, _) => tabColumn(indent, b, c, rest)
+    case TS(9 ~: rest, b, c, _, _) => tabColumn(indent, b, c, rest)
   }
 
   def loggingFilter: Filter = partial{
-    case TS(Ctrl('q') ~: rest, b, c, _) =>
+    case TS(Ctrl('q') ~: rest, b, c, _, _) =>
       println("Char Display Mode Enabled! Ctrl-C to exit")
       var curr = rest
       while (curr.head != 3) {
@@ -57,17 +57,17 @@ object BasicFilters {
   }
   def typingFilter: Filter = Filter.merge(
     action(SpecialKeys.FnDelete){
-      case TermState(rest, b, c, _) =>
+      case TermState(rest, b, c, _, _) =>
         val (first, last) = b.splitAt(c)
         TS(rest, first ++ last.drop(1), c)
     },
     action(SpecialKeys.Backspace){
-      case TermState(rest, b, c, _) =>
+      case TermState(rest, b, c, _, _) =>
         val (first, last) = b.splitAt(c)
         TS(rest, first.dropRight(1) ++ last, c - 1)
     },
     partial{
-      case TS(char ~: rest, b, c, _) =>
+      case TS(char ~: rest, b, c, _, _) =>
         if (!Character.isISOControl(char)){
 //          Debug("NORMAL CHAR " + char)
           val (first, last) = b.splitAt(c)
@@ -85,12 +85,12 @@ object BasicFilters {
   }
 
   def enterFilter: Filter = action(SpecialKeys.NewLine){
-    case TS(rest, b, c, _) => doEnter(b, c, rest) // Enter
+    case TS(rest, b, c, _, _) => doEnter(b, c, rest) // Enter
   }
 
   def exitFilter: Filter = Filter.merge(
     action(Ctrl('c'))(_ => Result("")),
-    action(Ctrl('d')){case TS(rest, b, c, _) =>
+    action(Ctrl('d')){case TS(rest, b, c, _, _) =>
       // only exit if the line is empty, otherwise, behave like
       // "delete" (i.e. delete one char to the right)
       if (b.isEmpty) Exit
@@ -103,7 +103,7 @@ object BasicFilters {
     wrap(ti => ti.ts.inputs.dropPrefix(Seq(-1)).map(_ => Exit))
   )
   def clearFilter: Filter =
-    action(Ctrl('l')){case TS(rest, b, c, _) => ClearScreen(TS(rest, b, c))}
+    action(Ctrl('l')){case TS(rest, b, c, _, _) => ClearScreen(TS(rest, b, c))}
 
 
   def moveStart(b: Vector[Char],

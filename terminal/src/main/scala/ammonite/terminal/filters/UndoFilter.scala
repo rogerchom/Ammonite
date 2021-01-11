@@ -123,13 +123,13 @@ case class UndoFilter(maxUndo: Int = 25) extends DelegateFilter{
 
   def filter = Filter.merge(
     Filter.wrap{
-      case TS(q ~: rest, b, c, _) =>
+      case TS(q ~: rest, b, c, _, _) =>
         pushUndos(b, c)
         None
     },
-    action(Ctrl('-')){ case TS(rest, b, c, _) => wrap(undo(b, c), rest) },
-    action(SpecialKeys.Alt + 'r'){ case TS(rest, b, c, _) => wrap(undo(b, c), rest) },
-    action(SpecialKeys.Alt + '-'){ case TS(rest, b, c, _) => wrap(redo(b, c), rest) }
+    action(Ctrl('-')){ case TS(rest, b, c, _, _) => wrap(undo(b, c), rest) },
+    action(SpecialKeys.Alt + 'r'){ case TS(rest, b, c, _, _) => wrap(undo(b, c), rest) },
+    action(SpecialKeys.Alt + '-'){ case TS(rest, b, c, _, _) => wrap(redo(b, c), rest) }
   )
 }
 
